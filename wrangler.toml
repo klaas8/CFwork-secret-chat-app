@@ -1,0 +1,15 @@
+# wrangler.toml
+
+# 你的项目名称，会用在 .pages.dev 的子域名中
+name = "cfwork-secret-chat-app"
+# 兼容性日期，保持最新
+compatibility_date = "2025-11-04"
+
+# 【重要】告诉 Pages 你的静态资源在 public 文件夹
+[site]
+bucket = "./public"
+
+# 【重要】Durable Object 的绑定配置
+[[durable_objects.bindings]]
+name = "CHAT_ROOM"
+class_name = "ChatRoom"
