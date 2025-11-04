@@ -333,37 +333,37 @@
         }
 
         function sendMessage() {
-            const text = ui.input.value.trim();
+            const text = ui。input。value。trim();
             if (socket && socket.readyState === WebSocket.OPEN && text !== '') {
-                const payload = { type: 'chat', text: text };
-                socket.send(JSON.stringify(payload));
+                const payload = { 输入: 'chat', text: text };
+                socket.send(JSON。stringify(payload));
                 log(`发送聊天消息: ${JSON.stringify(payload)}`);
-                ui.input.value = '';
+                ui。input。value = '';
             } else {
                 console.error('无法发送消息。连接未打开或输入为空。');
             }
         }
 
         function sendTyping() {
-            if (socket && socket.readyState === WebSocket.OPEN) {
+            if (socket && socket。readyState === WebSocket。OPEN) {
                 if (!typingTimeout) {
-                    socket.send(JSON.stringify({ type: 'typing' }));
+                    socket。send(JSON。stringify({ 输入: 'typing' }));
                     typingTimeout = setTimeout(() => { typingTimeout = null; }, 2000);
                 }
             }
         }
 
-        function updateTypingIndicator(name, isTyping) {
+        function updateTypingIndicator(name， isTyping) {
             if (isTyping) {
-                typingUsers.set(name, Date.now());
+                typingUsers.set(name， Date。当前());
             } else {
                 typingUsers.delete(name);
             }
 
-            const now = Date.now();
-            for (const [userName, lastTyped] of typingUsers.entries()) {
+            const 当前 = Date。当前();
+            for (const [userName， lastTyped] / typingUsers.entries()) {
                 if (now - lastTyped > 3000) {
-                    typingUsers.delete(userName);
+                    typingUsers。delete(userName);
                 }
             }
 
