@@ -1,0 +1,11 @@
+# wrangler.toml (用于首次创建Durable Object命名空间)
+
+name = "cfwork-secret-chat-app"
+compatibility_date = "2024-03-01"
+
+# 【【【 这是最关键的部分 】】】
+# 它告诉 Cloudflare，我们要创建一个名为 "ChatRoom" 的 Durable Object
+# 并且这个 Object 会在部署时自动创建一个新的命名空间
+[[migrations]]
+tag = "v1" # 这是一个版本标签，随便写什么都行
+new_classes = ["ChatRoom"] 
