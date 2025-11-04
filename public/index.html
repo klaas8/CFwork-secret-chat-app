@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>秘密聊天室</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .chat-container { width: 90%; max-width: 800px; height: 90vh; background-color: #fff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: flex; flex-direction: column; }
+        .chat-header { padding: 15px; border-bottom: 1px solid #ddd; font-size: 12px; color: #666; text-align: center; }
+        #status { font-weight: bold; }
+        .messages { flex-grow: 1; overflow-y: auto; padding: 20px; }
+        .message { margin-bottom: 15px; }
+        .message .meta { font-size: 12px; color: #888; }
+        .message .meta .name { font-weight: bold; }
+        .message .text { background-color: #e9e9eb; padding: 10px 15px; border-radius: 18px; display: inline-block; max-width: 80%; margin-top: 5px; word-wrap: break-word; }
+        .message.info { text-align: center; color: #aaa; font-size: 12px; }
+        .message.error { text-align: center; color: #ff4d4f; font-size: 12px; font-weight: bold; }
+        .input-area { display: flex; padding: 15px; border-top: 1px solid #ddd; }
+        #message-input { flex-grow: 1; border: 1px solid #ccc; border-radius: 20px; padding: 10px 15px; font-size: 16px; outline: none; }
+        #send-button { background-color: #007bff; color: white; border: none; border-radius: 20px; padding: 10px 20px; margin-left: 10px; cursor: pointer; font-size: 16px; }
+        #send-button:hover { background-color: #0056b3; }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <span id="status">正在连接...</span>
+        </div>
+        <div class="messages" id="messages"></div>
+        <div class="input-area">
+            <input type="text" id="message-input" placeholder="输入消息..." autocomplete="off">
+            <button id="send-button">发送</button>
+        </div>
+    </div>
+
+    <script>
+        const messagesDiv = document.getElementById('messages');
+        const statusSpan = document.getElementById('status');
+        const input = document.getElementById('message-input');
+        const sendButton = document.getElementById('send-button');
+
+        let socket;
+
+        function connect() {
+            const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+            const wsUrl = `${protocol}://${window.location.host}/`;
+            
+            socket = new WebSocket(wsUrl);
+
+            socket.onopen = () => { console.log("WebSocket 连接已建立"); };
+
+            socket.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                switch (data.type) {
+                    case 'info':
+                    case 'error':
+                        addSystemMessage(data.message, data.type);
+                        break;
+                    case 'status':
+                        updateStatus(data.online, data.remaining);
+                        break;
+                    case 'history':
+                        messagesDiv.innerHTML = '';
+                        data.messages.forEach(msg => addMessage(msg));
+                        break;
+                    case 'message':
+                        addMessage(data);
+                        break;
+                }
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            };
+
+            socket.onclose = (event) => {
+                console.log("WebSocket 连接已关闭", event);
+                addSystemMessage("连接已断开，3秒后尝试重连...", "error");
+                setTimeout(connect, 3000);
+            };
+
+            socket.onerror = (error) => {
+                console.error("WebSocket 错误:", error);
+                addSystemMessage("连接出现错误。", "error");
+            };
+        }
+
+        function addMessage(msg) {
+            const msgEl = document.createElement('div');
+            msgEl.classList.add('message');
+            msgEl.innerHTML = `
+                <div class="meta">
+                    <span class="name">${escapeHtml(msg.name)}</span>
+                    <span> - ${new Date(msg.timestamp).toLocaleTimeString()}</span>
+                </div>
+                <div class="text">${escapeHtml(msg.text)}</div>
+            `;
+            messagesDiv.appendChild(msgEl);
+        }
+
+        function addSystemMessage(text, type) {
+            const msgEl = document.createElement('div');
+            msgEl.classList.add('message', type);
+            msgEl.textContent = escapeHtml(text);
+            messagesDiv.appendChild(msgEl);
+        }
+
+        function updateStatus(online, remaining) {
+            statusSpan.textContent = `在线: ${online} 人 | 今日剩余消息: ${remaining.toLocaleString()}`;
+        }
+
+        function sendMessage() {
+            if (socket && socket.readyState === WebSocket.OPEN && input.value.trim() !== '') {
+                socket.send(input.value);
+                input.value = '';
+            }
+        }
+        
+        function escapeHtml(unsafe) {
+            return unsafe
+                 .replace(/&/g, "&amp;")
+                 .replace(/</g, "&lt;")
+                 .replace(/>/g, "&gt;")
+                 .replace(/"/g, "&quot;")
+                 .replace(/'/g, "&#039;");
+        }
+
+        sendButton.addEventListener('click', sendMessage);
+        input.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        connect();
+    </script>
+</body>
+</html>
