@@ -1,0 +1,19 @@
+# wrangler.toml (最终的、针对免费套餐的正确版本)
+
+name = "cfwork-secret-chat-app"
+main = "src/index.js"
+compatibility_date = "2024-03-01"
+
+# 【绑定配置】
+# 告诉 Worker，代码里有一个叫 CHAT_ROOM 的变量，它是一个 Durable Object
+[[durable_objects.bindings]]
+name = "CHAT_ROOM"
+class_name = "ChatRoom"
+
+# 【【【 针对免费套餐修改的部分 】】】
+# 【迁移配置】
+# 明确告诉 Cloudflare，我们要创建一个新的、内置了 SQLite 的 Durable Object 类
+[[migrations]]
+tag = "v1" # 这是一个版本标签
+# 将 new_classes 修改为 new_sqlite_classes
+new_sqlite_classes = ["ChatRoom"]
