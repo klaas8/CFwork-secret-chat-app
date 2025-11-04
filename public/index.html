@@ -5,93 +5,178 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>秘密聊天室</title>
     <style>
+        :root { --theme-color: #007bff; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; }
-        .chat-container { width: 90%; max-width: 800px; height: 90vh; background-color: #fff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: flex; flex-direction: column; }
+        .main-container { display: flex; width: 95%; max-width: 1200px; height: 95vh; background-color: #fff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .chat-container { flex-grow: 1; display: flex; flex-direction: column; }
+        .settings-panel { width: 280px; border-left: 1px solid #ddd; padding: 20px; display: flex; flex-direction: column; background-color: #f8f9fa; }
+        .settings-panel h3 { margin-top: 0; text-align: center; color: #333; }
+        .setting-item { margin-bottom: 20px; }
+        .setting-item label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; }
+        .setting-item input { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        .avatar-selector { display: grid; grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)); gap: 10px; }
+        .avatar-option { font-size: 24px; text-align: center; padding: 5px; border-radius: 50%; cursor: pointer; transition: background-color 0.2s; }
+        .avatar-option.selected { background-color: var(--theme-color); color: white; }
+        #save-settings { background-color: var(--theme-color); color: white; border: none; border-radius: 4px; padding: 10px; width: 100%; cursor: pointer; font-size: 16px; margin-top: auto; }
         .chat-header { padding: 15px; border-bottom: 1px solid #ddd; font-size: 12px; color: #666; text-align: center; }
         #status { font-weight: bold; }
         .messages { flex-grow: 1; overflow-y: auto; padding: 20px; }
-        .message { margin-bottom: 15px; }
-        .message .meta { font-size: 12px; color: #888; }
-        .message .meta .name { font-weight: bold; }
-        .message .text { background-color: #e9e9eb; padding: 10px 15px; border-radius: 18px; display: inline-block; max-width: 80%; margin-top: 5px; word-wrap: break-word; }
-        .message.info { text-align: center; color: #aaa; font-size: 12px; }
-        .message.error { text-align: center; color: #ff4d4f; font-size: 12px; font-weight: bold; }
+        .message { display: flex; margin-bottom: 15px; max-width: 80%; }
+        .message .avatar { font-size: 24px; width: 40px; height: 40px; line-height: 40px; text-align: center; border-radius: 50%; background-color: #e9e9eb; margin-right: 10px; flex-shrink: 0; }
+        .message .content { display: flex; flex-direction: column; }
+        .message .meta { font-size: 12px; color: #888; margin-bottom: 5px; }
+        .message .text { background-color: #e9e9eb; padding: 10px 15px; border-radius: 18px; word-wrap: break-word; }
+        .message.mine { align-self: flex-end; flex-direction: row-reverse; }
+        .message.mine .avatar { margin-right: 0; margin-left: 10px; }
+        .message.mine .text { background-color: var(--theme-color); color: white; }
+        .message.mine .meta { text-align: right; }
+        .message.info, .message.error { align-self: center; text-align: center; color: #aaa; font-size: 12px; max-width: 100%; }
+        .message.error { color: #ff4d4f; font-weight: bold; }
         .input-area { display: flex; padding: 15px; border-top: 1px solid #ddd; }
         #message-input { flex-grow: 1; border: 1px solid #ccc; border-radius: 20px; padding: 10px 15px; font-size: 16px; outline: none; }
-        #send-button { background-color: #007bff; color: white; border: none; border-radius: 20px; padding: 10px 20px; margin-left: 10px; cursor: pointer; font-size: 16px; }
-        #send-button:hover { background-color: #0056b3; }
+        #send-button { background-color: var(--theme-color); color: white; border: none; border-radius: 20px; padding: 10px 20px; margin-left: 10px; cursor: pointer; font-size: 16px; }
     </style>
 </head>
 <body>
-    <div class="chat-container">
-        <div class="chat-header">
-            <span id="status">正在连接...</span>
+    <div class="main-container">
+        <div class="chat-container">
+            <div class="chat-header"><span id="status">正在连接...</span></div>
+            <div class="messages" id="messages"></div>
+            <div class="input-area">
+                <input type="text" id="message-input" placeholder="输入消息..." autocomplete="off">
+                <button id="send-button">发送</button>
+            </div>
         </div>
-        <div class="messages" id="messages"></div>
-        <div class="input-area">
-            <input type="text" id="message-input" placeholder="输入消息..." autocomplete="off">
-            <button id="send-button">发送</button>
+        <div class="settings-panel">
+            <h3>个人设置</h3>
+            <div class="setting-item">
+                <label for="name-input">昵称</label>
+                <input type="text" id="name-input" placeholder="设置你的昵称">
+            </div>
+            <div class="setting-item">
+                <label>头像</label>
+                <div class="avatar-selector" id="avatar-selector"></div>
+            </div>
+            <button id="save-settings">保存并重连</button>
         </div>
     </div>
 
     <script>
+        // DOM Elements
         const messagesDiv = document.getElementById('messages');
         const statusSpan = document.getElementById('status');
         const input = document.getElementById('message-input');
         const sendButton = document.getElementById('send-button');
+        const nameInput = document.getElementById('name-input');
+        const avatarSelector = document.getElementById('avatar-selector');
+        const saveButton = document.getElementById('save-settings');
 
+        // State
         let socket;
+        let myIdentity = { name: '', avatar: '' };
+        const avatars = ['😀', '😎', '🤖', '👻', '👽', '🧑‍🚀', '🦄', '🐼', '🦊', '🧙'];
 
+        // --- Initialization ---
+        function initialize() {
+            loadSettings();
+            populateAvatars();
+            connect();
+
+            sendButton.addEventListener('click', sendMessage);
+            input.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter') sendMessage();
+            });
+            saveButton.addEventListener('click', saveAndReconnect);
+        }
+
+        // --- Settings ---
+        function loadSettings() {
+            myIdentity.name = localStorage.getItem('chat_name') || '';
+            myIdentity.avatar = localStorage.getItem('chat_avatar') || avatars[0];
+            nameInput.value = myIdentity.name;
+        }
+
+        function populateAvatars() {
+            avatars.forEach(avatar => {
+                const option = document.createElement('div');
+                option.classList.add('avatar-option');
+                option.textContent = avatar;
+                if (avatar === myIdentity.avatar) {
+                    option.classList.add('selected');
+                }
+                option.addEventListener('click', () => {
+                    document.querySelector('.avatar-option.selected')?.classList.remove('selected');
+                    option.classList.add('selected');
+                    myIdentity.avatar = avatar;
+                });
+                avatarSelector.appendChild(option);
+            });
+        }
+
+        function saveAndReconnect() {
+            myIdentity.name = nameInput.value.trim();
+            localStorage.setItem('chat_name', myIdentity.name);
+            localStorage.setItem('chat_avatar', myIdentity.avatar);
+            addSystemMessage('设置已保存，正在重新连接...', 'info');
+            if (socket) socket.close();
+        }
+
+        // --- WebSocket Connection ---
         function connect() {
+            const nameParam = encodeURIComponent(myIdentity.name);
+            const avatarParam = encodeURIComponent(myIdentity.avatar);
             const protocol = window.location.protocol === "https:" ? "wss" : "ws";
-            const wsUrl = `${protocol}://${window.location.host}/`;
+            const wsUrl = `${protocol}://${window.location.host}/?name=${nameParam}&avatar=${avatarParam}`;
             
             socket = new WebSocket(wsUrl);
 
-            socket.onopen = () => { console.log("WebSocket 连接已建立"); };
-
-            socket.onmessage = (event) => {
-                const data = JSON.parse(event.data);
-                switch (data.type) {
-                    case 'info':
-                    case 'error':
-                        addSystemMessage(data.message, data.type);
-                        break;
-                    case 'status':
-                        updateStatus(data.online, data.remaining);
-                        break;
-                    case 'history':
-                        messagesDiv.innerHTML = '';
-                        data.messages.forEach(msg => addMessage(msg));
-                        break;
-                    case 'message':
-                        addMessage(data);
-                        break;
-                }
-                messagesDiv.scrollTop = messagesDiv.scrollHeight;
-            };
-
-            socket.onclose = (event) => {
-                console.log("WebSocket 连接已关闭", event);
+            socket.onopen = () => console.log("WebSocket 连接已建立");
+            socket.onmessage = handleSocketMessage;
+            socket.onclose = () => {
                 addSystemMessage("连接已断开，3秒后尝试重连...", "error");
                 setTimeout(connect, 3000);
             };
-
-            socket.onerror = (error) => {
-                console.error("WebSocket 错误:", error);
-                addSystemMessage("连接出现错误。", "error");
-            };
+            socket.onerror = () => addSystemMessage("连接出现错误。", "error");
         }
 
+        function handleSocketMessage(event) {
+            const data = JSON.parse(event.data);
+            switch (data.type) {
+                case 'info':
+                case 'error':
+                    addSystemMessage(data.message, data.type);
+                    break;
+                case 'status':
+                    updateStatus(data.online, data.remaining);
+                    break;
+                case 'history':
+                    messagesDiv.innerHTML = '';
+                    data.messages。forEach(msg => addMessage(msg));
+                    break;
+                case 'message':
+                    addMessage(data);
+                    break;
+                case 'identity':
+                    myIdentity = { name: data。name， avatar: data。avatar };
+                    nameInput。value = data。name;
+                    document。querySelector('.avatar-option.selected')?.classList。remove('selected');
+                    document。querySelector(`.avatar-option:is(:contains('${data。avatar}'))`)?.classList。add('selected');
+                    break;
+            }
+            messagesDiv.scrollTop = messagesDiv。scrollHeight;
+        }
+
+        // --- UI Updates ---
         function addMessage(msg) {
+            const isMine = msg。name === myIdentity。name;
             const msgEl = document.createElement('div');
-            msgEl.classList.add('message');
+            msgEl.classList.add('message', isMine ? 'mine' : 'theirs');
             msgEl.innerHTML = `
-                <div class="meta">
-                    <span class="name">${escapeHtml(msg.name)}</span>
-                    <span> - ${new Date(msg.timestamp).toLocaleTimeString()}</span>
+                <div class="avatar">${escapeHtml(msg。avatar)}</div>
+                <div class="content">
+                    <div class="meta">${escapeHtml(msg。name)} - ${new Date(msg。timestamp)。toLocaleTimeString()}</div>
+                    <div class="text">${escapeHtml(msg。text)}</div>
                 </div>
-                <div class="text">${escapeHtml(msg.text)}</div>
             `;
             messagesDiv.appendChild(msgEl);
         }
@@ -99,38 +184,27 @@
         function addSystemMessage(text, type) {
             const msgEl = document.createElement('div');
             msgEl.classList.add('message', type);
-            msgEl.textContent = escapeHtml(text);
-            messagesDiv.appendChild(msgEl);
+            msgEl。textContent = escapeHtml(text);
+            messagesDiv。appendChild(msgEl);
         }
 
         function updateStatus(online, remaining) {
-            statusSpan.textContent = `在线: ${online} 人 | 今日剩余消息: ${remaining.toLocaleString()}`;
+            statusSpan。textContent = `在线: ${online} 人 | 今日剩余消息: ${remaining。toLocaleString()}`;
         }
 
         function sendMessage() {
             if (socket && socket.readyState === WebSocket.OPEN && input.value.trim() !== '') {
                 socket.send(input.value);
-                input.value = '';
+                input。value = '';
             }
         }
         
         function escapeHtml(unsafe) {
-            return unsafe
-                 .replace(/&/g, "&amp;")
-                 .replace(/</g, "&lt;")
-                 .replace(/>/g, "&gt;")
-                 .replace(/"/g, "&quot;")
-                 .replace(/'/g, "&#039;");
+            return unsafe。替换(/&/g， "&amp;")。替换(/</g， "&lt;")。replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
 
-        sendButton.addEventListener('click', sendMessage);
-        input.addEventListener('keydown', (event) => {
-            if (event.key === 'Enter') {
-                sendMessage();
-            }
-        });
-
-        connect();
+        // --- Start the app ---
+        initialize();
     </script>
 </body>
 </html>
