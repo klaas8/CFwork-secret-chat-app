@@ -230,7 +230,7 @@ var HTML = `
         .toggle-button { background: none; border: 1px solid var(--border-color); border-radius: 50%; width: 30px; height: 30px; cursor: pointer; font-size: 18px; line-height: 28px; z-index: 10; display: flex; align-items: center; justify-content: center; }
         
         .messages { flex-grow: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; }
-        .messages * { max-width: 100%;}
+        .messages * { max-width: 90%;}
         .message { display: flex; margin-bottom: 15px; max-width: 80%; position: relative; }
         .message .avatar { font-size: 24px; width: 40px; height: 40px; line-height: 40px; text-align: center; border-radius: 50%; background-color: #e9e9eb; margin-right: 10px; flex-shrink: 0; user-select: none; }
         .message .content { display: flex; flex-direction: column; }
