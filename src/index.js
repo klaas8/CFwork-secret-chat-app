@@ -287,7 +287,30 @@ var HTML = `
         .avatar-option.selected { background-color: var(--theme-color); color: white; }
         #save-settings { background-color: var(--theme-color); color: white; border: none; border-radius: 4px; padding: 10px; width: 100%; cursor: pointer; font-size: 16px; margin-top: auto; }
         #clear-messages { background-color: #6c757d; color: white; border: none; border-radius: 4px; padding: 10px; width: 100%; cursor: pointer; font-size: 16px; margin-top: 10px; }
-
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 999;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    overflow: auto;
+}
+.modal-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+}
+.modal-image {
+    max-width: 100%;
+    max-height: 100%;
+    overflow: visible;
+    width: 100%;
+    height: auto;
+}
         @media (max-width: 768px) {
             .message { max-width: 90%; }
             .chat-header { padding: 10px 15px; }
@@ -349,6 +372,11 @@ var HTML = `
                 <button id="save-settings">保存并加入聊天</button>
             </div>
         </div>
+        <div id="myModal" class="modal" onclick="closeModal()">
+        <div class="modal-content" onclick="closeModal()">
+            <img id="modalImage" alt="Modal Image" class="modal-image" onclick="closeModal()">
+        </div>
+    </div>
     </div>
 
     <script>
@@ -593,6 +621,14 @@ var HTML = `
                 msgEl.classList.add('retracted');
                 textContent = escapeHtml(msg.text);
             } else if (clientSettings.renderHtml) {
+                var modifiedContent = msg.text.replace(/(<img.*?>)/gi, function(match, p1) {
+                  if (p1.indexOf('onclick') === -1) {
+                     return p1.replace(/(\/?>)/, ' onclick="openModal(this)"$1');
+                  } else {
+                    return msg.text;
+                  }
+                });
+                msg.text = modifiedContent;
                 textContent = DOMPurify.sanitize(marked.parse(msg.text));
             } else {
                 textContent = escapeHtml(msg.text).replace(/\\n/g, '<br>');
@@ -731,7 +767,17 @@ var HTML = `
             ui.input.style.height = scrollHeight + 'px';
         }
         ui.input.addEventListener('input', autoResizeTextarea);
-
+function openModal(img) {
+        var modal = document.getElementById("myModal");
+        var modalImg = document.getElementById("modalImage");
+        modal.style.display = "block";
+        modalImg.src = img.src;
+    }
+    // 缩小图片
+    function closeModal() {
+        var modal = document.getElementById("myModal");
+        modal.style.display = "none";
+    }
         // --- Start the application ---
         document.addEventListener('DOMContentLoaded', initialize);
     })();
