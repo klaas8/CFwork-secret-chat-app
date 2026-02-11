@@ -222,14 +222,14 @@ var HTML = `
         :root { --theme-color: #007bff; --bg-color: #f0f2f5; --panel-bg: #fff; --text-color: #333; --border-color: #ddd; --retracted-color: #999; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; background-color: var(--bg-color); display: flex; height: 100vh; overflow: hidden; }
         
-        .app-container { display: flex; width: 100%; height: 100%; transition: transform 0.3s ease-in-out; }
+        .app-container { flex-direction: column; display: flex; width: 100vw; height: 100vh; transition: transform 0.3s ease-in-out; }
         .main-content { flex-grow: 1; display: flex; flex-direction: column; width: 100%; height: 100%; position: relative; z-index: 1; background-color: var(--bg-color); }
         
         .chat-header { padding: 10px 20px; border-bottom: 1px solid var(--border-color); font-size: 12px; color: #666; text-align: center; position: relative; flex-shrink: 0; background-color: var(--panel-bg); display: flex; justify-content: center; align-items: center; }
         .header-buttons { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); display: flex; gap: 10px; }
         .toggle-button { background: none; border: 1px solid var(--border-color); border-radius: 50%; width: 30px; height: 30px; cursor: pointer; font-size: 18px; line-height: 28px; z-index: 10; display: flex; align-items: center; justify-content: center; }
         
-        .messages { flex-grow: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; }
+        .messages { flex-grow: 1; flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; }
         .messages * { max-width: 90%;}
         .message { display: flex; margin-bottom: 15px; max-width: 80%; position: relative; }
         .message .avatar { font-size: 24px; width: 40px; height: 40px; line-height: 40px; text-align: center; border-radius: 50%; background-color: #e9e9eb; margin-right: 10px; flex-shrink: 0; user-select: none; }
@@ -255,7 +255,7 @@ var HTML = `
         .text.expanded { max-height: none; cursor: default; }
         .text.expanded::after { display: none; }
 
-        .input-area { display: flex; flex-direction: column; padding: 15px; border-top: 1px solid var(--border-color); flex-shrink: 0; background-color: var(--panel-bg); }
+        .input-area { display: flex; flex-direction: row; padding: 5px; justify-content: center; height: 50px; margin: 1vh; border-top: 1px solid var(--border-color); flex-shrink: 0; background-color: var(--panel-bg); }
         .input-row { display: flex; width: 100%; align-items: center; position: relative; }
         #message-input { flex-grow: 1; border: 1px solid #ccc; border-radius: 20px; padding: 10px 15px; font-size: 16px; outline: none; resize: none; max-height: 150px; overflow-y: auto; }
         .input-actions { display: flex; align-items: center; margin-left: 10px; }
