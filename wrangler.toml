@@ -17,7 +17,3 @@ class_name = "ChatRoom"
 tag = "v1" # 这是一个版本标签
 # 将 new_classes 修改为 new_sqlite_classes
 new_sqlite_classes = ["ChatRoom"]
-
-[[vars]]
-BOT_TOKEN = "AAH80cMDUZfCCfB12SxB9IjPMIW9FA4Lo5Q"
-CHANNEL_ID = "-1003756753944"
