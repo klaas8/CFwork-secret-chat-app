@@ -1,5 +1,7 @@
 # 🤫 Secret Chat - 基于 Cloudflare 的匿名实时聊天室
 
+https://www.single8.dpdns.org/
+
 ![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)
 ![Powered by Cloudflare](https://img.shields.io/badge/Powered%20by-Cloudflare-F38020?logo=cloudflare)
 ![Tech Stack](https://img.shields.io/badge/Tech-Workers_%2B_Durable_Objects-orange)
